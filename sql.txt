@@ -1,0 +1,15 @@
+CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, hash TEXT NOT NULL, preferred_name TEXT);
+ 
+CREATE TABLE flipcards (
+    card_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    user_id INTEGER NOT NULL,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    category TEXT,
+    difficulty INTEGER,
+    created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_reviewed_date DATETIME,
+    review_count INTEGER DEFAULT 0,
+    FOREIGN KEY (user_id)
+      REFERENCES users(id)
+);

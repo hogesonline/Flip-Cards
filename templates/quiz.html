@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Test Yourself
+{% endblock %}
+
+{% block main %}
+        <h1>Test Yourself</h1>
+        <div id="card" class="flip-card">
+          <div class="flip-card-inner" >
+            <div id="card-front" class="flip-card-front">
+              <h1>{{ question["question"] }}</h1>
+            </div>
+            <div id="card-back" class="flip-card-back invisible">
+              <h1>{{ question["answer"] }}</h1> 
+            </div>
+            <button onclick="flipCard()">Flip</button>
+            <form action="/next_question" method="post">
+              <input type="submit" name="next" value="Next">
+            </form>
+          </div>
+        </div>
+
+        <script>
+        function flipCard() {
+            front = document.getElementById("card-front");
+            back = document.getElementById("card-back");
+            front.classList.toggle("invisible");
+            back.classList.toggle("invisible");
+            }
+        </script>
+{% endblock %}
