@@ -1,9 +1,9 @@
-import os
+import os # unused import
 
 from sqlalchemy import create_engine, text
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session # unused imports: flash
 from flask_session import Session
-from tempfile import mkdtemp
+from tempfile import mkdtemp # unused import
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from datetime import datetime
@@ -85,11 +85,15 @@ def add_question():
         #store the registration
         add_question_db = text("INSERT INTO flipcards (user_id, question, answer, category, difficulty, created_date) values(:uid, :question, :answer, :category, :difficulty, :created)")   
         connection.execute(add_question_db, [{"uid": session["user_id"], "question":question, "answer":answer, "category":category, "difficulty":difficulty, "created":datetime.now()}])
+        # does this allow for sql injection?
         connection.commit()
-        return redirect("/")
+        return redirect("/") # why not redirect to /add? i'd imagine you wouldn't add only one card at a time
     else:
         return render_template("add_question.html" , categories=CATEGORIES)
 
+
+### why not have these be in the same subdomain? quiz setup could be quiz for get,
+### quiz could be pretty much the same, and next question could be qui with a ?q=2 or something
 
 @app.route("/quiz_setup", methods=["GET"])
 @login_required
@@ -149,7 +153,7 @@ def login():
 
         # Query database for username
         select_qry = text("SELECT * FROM users WHERE username = :uname")
-        rows = connection.execute(select_qry, [{"uname":request.form.get("username")}])
+        rows = connection.execute(select_qry, [{"uname":request.form.get("username")}]) # same question about sql injection
         rows = rows.fetchall()
 
 
@@ -178,13 +182,13 @@ def logout():
     # Redirect user to login form
     return redirect("/")
 
-
+# this appears to be no longer supported (quote.html and quoted.html don't exist)
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
 def quote():
     """Get stock quote."""
     if request.method == "POST":
-        stock = lookup(request.form.get("symbol").upper())
+        stock = lookup(request.form.get("symbol").upper()) # no lookup function imported
 
         if not stock:
             return apology("Invalid Symbol")
@@ -216,6 +220,7 @@ def register():
 
         # Query database for username
         insert_qry = text("INSERT INTO users (username, hash) values(:uname,:pwd)")
+        ## minor nitpick but my lsp isn't happy that you're using request.form.get twice instead of storing the value in a str the first time
         result = connection.execute(insert_qry, [{"uname":request.form.get("username"), "pwd":generate_password_hash(request.form.get("password"))}])
         connection.commit()
         # Redirect user to home page
