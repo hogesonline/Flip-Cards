@@ -1,9 +1,6 @@
-import os # unused import
-
 from sqlalchemy import create_engine, text
-from flask import Flask, flash, redirect, render_template, request, session # unused imports: flash
+from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
-from tempfile import mkdtemp # unused import
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from datetime import datetime
@@ -85,43 +82,38 @@ def add_question():
         #store the registration
         add_question_db = text("INSERT INTO flipcards (user_id, question, answer, category, difficulty, created_date) values(:uid, :question, :answer, :category, :difficulty, :created)")   
         connection.execute(add_question_db, [{"uid": session["user_id"], "question":question, "answer":answer, "category":category, "difficulty":difficulty, "created":datetime.now()}])
-        # does this allow for sql injection?
         connection.commit()
-        return redirect("/") # why not redirect to /add? i'd imagine you wouldn't add only one card at a time
+        return redirect("/add")
     else:
         return render_template("add_question.html" , categories=CATEGORIES)
 
 
-### why not have these be in the same subdomain? quiz setup could be quiz for get,
-### quiz could be pretty much the same, and next question could be qui with a ?q=2 or something
-
-@app.route("/quiz_setup", methods=["GET"])
-@login_required
-def quiz_setup():
-    """Show quiz questions"""
-    return render_template("quiz_setup.html", categories = CATEGORIES)
-
-@app.route("/quiz", methods=["POST"])
+@app.route("/quiz", methods=["GET", "POST"])
 @login_required
 def quiz():
-    num_questions = request.form.get("num_quest")
-    category = request.form.get("category")
-    difficulty_start = request.form.get("difficulty_start")
-    difficulty_finish = request.form.get("difficulty_stop")
-    if not num_questions:
-        return apology("Missing a number of questions")
-    if not difficulty_start:
-        return apology("Missing a difficulty minimum")
-    if not difficulty_finish:
-        return apology("Missing a difficulty maximum")
-    if category not in CATEGORIES:
-        return apology("Invalid Category")
-    select_qry = text("SELECT * FROM flipcards WHERE category = :cat AND difficulty BETWEEN :diff_start AND :diff_finish ORDER BY RANDOM() LIMIT :num")
-    questions = connection.execute(select_qry, {"cat":category, "diff_start":difficulty_start, "diff_finish":difficulty_finish, "num":num_questions})
-    questions = questions.fetchall()
-    session["questions"] = questions
-    session["quest_num"] = 0
-    return render_template("quiz.html", question=questions[0])
+    if request.method == "GET":
+        """Show quiz setup"""
+        return render_template("quiz_setup.html", categories = CATEGORIES)
+    else:
+        """Show quiz questions"""
+        num_questions = request.form.get("num_quest")
+        category = request.form.get("category")
+        difficulty_start = request.form.get("difficulty_start")
+        difficulty_finish = request.form.get("difficulty_stop")
+        if not num_questions:
+            return apology("Missing a number of questions")
+        if not difficulty_start:
+            return apology("Missing a difficulty minimum")
+        if not difficulty_finish:
+            return apology("Missing a difficulty maximum")
+        if category not in CATEGORIES:
+            return apology("Invalid Category")
+        select_qry = text("SELECT * FROM flipcards WHERE category = :cat AND difficulty BETWEEN :diff_start AND :diff_finish ORDER BY RANDOM() LIMIT :num")
+        questions = connection.execute(select_qry, {"cat":category, "diff_start":difficulty_start, "diff_finish":difficulty_finish, "num":num_questions})
+        questions = questions.fetchall()
+        session["questions"] = questions
+        session["quest_num"] = 0
+        return render_template("quiz.html", question=questions[0])
 
 @app.route('/next_question', methods=['POST'])
 def next_question():
@@ -139,26 +131,27 @@ def login():
 
     # Forget any user_id
     session.clear()
-
+    
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-
+        uname = request.form.get("username")
+        pwd = request.form.get("password")
         # Ensure username was submitted
-        if not request.form.get("username"):
+        if not uname:
             return apology("must provide username", 403)
 
         # Ensure password was submitted
-        elif not request.form.get("password"):
+        elif not pwd:
             return apology("must provide password", 403)
 
         # Query database for username
         select_qry = text("SELECT * FROM users WHERE username = :uname")
-        rows = connection.execute(select_qry, [{"uname":request.form.get("username")}]) # same question about sql injection
+        rows = connection.execute(select_qry, [{"uname":uname}])
         rows = rows.fetchall()
 
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0][2], request.form.get("password")):
+        if len(rows) != 1 or not check_password_hash(rows[0][2], pwd):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
@@ -182,23 +175,6 @@ def logout():
     # Redirect user to login form
     return redirect("/")
 
-# this appears to be no longer supported (quote.html and quoted.html don't exist)
-@app.route("/quote", methods=["GET", "POST"])
-@login_required
-def quote():
-    """Get stock quote."""
-    if request.method == "POST":
-        stock = lookup(request.form.get("symbol").upper()) # no lookup function imported
-
-        if not stock:
-            return apology("Invalid Symbol")
-
-        return render_template("quoted.html", stock=stock)
-
-    else:
-        return render_template("quote.html")
-    #return apology("TODO")
-
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -207,21 +183,22 @@ def register():
     """Register user"""
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-
+        uname = request.form.get("username")
+        pwd = request.form.get("password")
+        pwd2 = request.form.get("password2")
         # Ensure username was submitted
-        if not request.form.get("username"):
+        if not uname:
             return apology("must provide username", 403)
 
         # Ensure password was submitted
-        elif not request.form.get("password"):
+        elif pwd:
             return apology("must provide password", 403)
-        elif request.form.get("password2") != request.form.get("password"):
+        elif pwd != pwd2:
             return apology("passwords must match", 403)
 
         # Query database for username
         insert_qry = text("INSERT INTO users (username, hash) values(:uname,:pwd)")
-        ## minor nitpick but my lsp isn't happy that you're using request.form.get twice instead of storing the value in a str the first time
-        result = connection.execute(insert_qry, [{"uname":request.form.get("username"), "pwd":generate_password_hash(request.form.get("password"))}])
+        result = connection.execute(insert_qry, [{"uname":uname, "pwd":generate_password_hash(pwd)}])
         connection.commit()
         # Redirect user to home page
         return redirect("/")
@@ -238,7 +215,6 @@ def register():
 def remove():
     """Remove questions"""
     question = request.form.get("question")
-    print(question)
     if not question:
         return apology("Something went wrong")
     remove_qry = text("DELETE FROM flipcards WHERE user_id = :uid AND card_id = :qid")
