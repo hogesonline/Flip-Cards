@@ -6,16 +6,6 @@
 
 {% block main %}
     <form action="/add" method="post">
-            <input autocomplete="off" autofocus class="form-control" id="question" name="question" placeholder="Question" type="text"><br>
-            <input autocomplete="off" autofocus class="form-control" id="answer" name="answer" placeholder="Answer" type="text"><br>
-            <select class="form-select" id="category" name="category">
-                <option disabled selected value="">Category</option>
-                {% for category in categories %}
-                <option value="{{ category }}">{{ category }}</option>
-                {% endfor %}
-            </select>
-            <p>Difficulty (1-5):</p>
-            <input type="range" min="1" max="5" value="5" class="slider" id="difficulty" name="difficulty"><br>
-        <button class="btn-primary" type="submit">Add Question</button>
+        <!-- TODO -->
     </form>
 {% endblock %}

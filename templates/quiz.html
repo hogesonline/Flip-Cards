@@ -5,21 +5,7 @@
 {% endblock %}
 
 {% block main %}
-        <h1>Test Yourself</h1>
-        <div id="card" class="flip-card">
-          <div class="flip-card-inner" >
-            <div id="card-front" class="flip-card-front">
-              <h1 id="question">{{ question["question"] }}</h1>
-            </div>
-            <div id="card-back" class="flip-card-back invisible">
-              <h1 id="änswer">{{ question["answer"] }}</h1> 
-            </div>
-            <button id="btn_flip" onclick="flipCard()">Flip</button>
-            <form action="/next_question" method="post">
-              <input type="submit" name="next" value="Next">
-            </form>
-          </div>
-        </div>
+        <!-- TODO -->
 
         <script>
         const answer = "{{ question['answer'] }}";

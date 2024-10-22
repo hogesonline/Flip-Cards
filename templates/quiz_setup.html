@@ -6,17 +6,7 @@
 
 {% block main %}
     <form action="/quiz" method="post">
-            <input autocomplete="off" autofocus class="form-control" id="num_quest" name="num_quest" placeholder="Number of questions" type="text"><br>
-            <select class="form-select" id="category" name="category">
-                <option disabled selected value="">Category</option>
-                {% for category in categories %}
-                <option value="{{ category }}">{{ category }}</option>
-                {% endfor %}
-            </select>
-            <p>Difficulty Range (1-5)</p>
-            <input type="text" name="difficulty_start" placeholder="Min"><input type="text" name="difficulty_stop" placeholder="Max"><br>
-            Last Reviewed Date Ordering?<input type="checkbox" name="last_reviewed"><br>
-        <button class="btn-primary" type="submit">Start Quiz</button>
+        <!-- TODO -->
     </form>
 
 {% endblock %}
